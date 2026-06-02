@@ -139,6 +139,7 @@ int Dar_ManRewrite( Aig_Man_t * pAig, Dar_RwrPar_t * pPars )
         // compute cuts for the node
         p->nNodesTried++;
 clk = Abc_Clock();
+        p->nCutEnumCalls++;
         Dar_ObjSetCuts( pObj, NULL );
         Dar_ObjComputeCuts_rec( p, pObj );
 p->timeCuts += Abc_Clock() - clk;
@@ -171,14 +172,17 @@ p->timeCuts += Abc_Clock() - clk;
         p->GainBest = -1;
         nMffcSize   = -1;
         Required    = pAig->vLevelR? Aig_ObjRequiredLevel(pAig, pObj) : ABC_INFINITY;
+clk = Abc_Clock();
         Dar_ObjForEachCut( pObj, pCut, k )
         {
             int nLeavesOld = pCut->nLeaves;
             if ( pCut->nLeaves == 3 )
                 pCut->pLeaves[pCut->nLeaves++] = 0;
+            p->nCutEvalCalls++;
             Dar_LibEval( p, pObj, pCut, Required, &nMffcSize );
             pCut->nLeaves = nLeavesOld; 
         }
+p->timeEval += Abc_Clock() - clk;
         // check the best gain
         //if ( !(p->GainBest > 0 || (p->GainBest == 0 && p->pPars->fUseZeros)) )
         if ( p->GainBest < p->pPars->nMinSaved )
@@ -218,6 +222,9 @@ p->timeCuts += Abc_Clock() - clk;
 
 p->timeTotal = Abc_Clock() - clkStart;
 p->timeOther = p->timeTotal - p->timeCuts - p->timeEval;
+printf( "darstat op=drw cut_enum_calls=%d cut_eval_calls=%d cuts_all=%d cuts_tried=%d cuts_used=%d time_cuts=%.6f time_eval=%.6f\n",
+    p->nCutEnumCalls, p->nCutEvalCalls, p->nCutsAll, p->nCutsTried, p->nCutsUsed,
+    1.0 * p->timeCuts / CLOCKS_PER_SEC, 1.0 * p->timeEval / CLOCKS_PER_SEC );
 
 //    Bar_ProgressStop( pProgress );
     Dar_ManCutsFree( p );
@@ -349,4 +356,3 @@ Aig_MmFixed_t * Dar_ManComputeCuts( Aig_Man_t * pAig, int nCutsMax, int fSkipTtM
 
 
 ABC_NAMESPACE_IMPL_END
-

@@ -198,6 +198,9 @@ int If_ManPerformMappingComb( If_Man_t * p )
 */
     p->pPars->FinalDelay = p->RequiredGlo;
     p->pPars->FinalArea  = p->AreaGlo;
+    printf( "ifstat cut_enum_calls=%d cut_eval_calls=%d cuts_merged=%d cuts_total=%d area=%.6f delay=%.6f time_total=%.6f\n",
+        p->nCutEnumCalls, p->nCutEvalCalls, p->nCutsMerged, p->nCutsTotal,
+        p->AreaGlo, p->RequiredGlo, 1.0 * (Abc_Clock() - clkTotal) / CLOCKS_PER_SEC );
     return 1;
 }
 

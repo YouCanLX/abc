@@ -172,6 +172,7 @@ void If_ObjPerformMappingAnd( If_Man_t * p, If_Obj_t * pObj, int Mode, int fPrep
     int fUseAndCut = (p->pPars->nAndDelay > 0) || (p->pPars->nAndArea > 0);
     assert( !If_ObjIsAnd(pObj->pFanin0) || pObj->pFanin0->pCutSet->nCuts > 0 );
     assert( !If_ObjIsAnd(pObj->pFanin1) || pObj->pFanin1->pCutSet->nCuts > 0 );
+    p->nCutEnumCalls++;
 
     // prepare
     if ( Mode == 0 )
@@ -463,6 +464,7 @@ IfMapBestCutDone:
         }
         
         // compute the application-specific cost and depth
+        p->nCutEvalCalls++;
         pCut->fUser = (p->pPars->pFuncCost != NULL);
         pCut->Cost = p->pPars->pFuncCost? p->pPars->pFuncCost(p, pCut) : 0;
         if ( pCut->Cost == IF_COST_MAX )
@@ -627,6 +629,7 @@ void If_ObjPerformMappingChoice( If_Man_t * p, If_Obj_t * pObj, int Mode, int fP
             if ( If_CutFilter( pCutSet, pCut, fSave0 ) )
                 continue;
             // check if the cut satisfies the required times
+            p->nCutEvalCalls++;
 //            assert( pCut->Delay == If_CutDelay( p, pTemp, pCut ) );
             if ( Mode && pCut->Delay > pObj->Required + p->fEpsilon && pCutSet->nCuts > 0 )
                 continue;

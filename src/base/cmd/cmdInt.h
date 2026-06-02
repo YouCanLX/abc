@@ -46,6 +46,9 @@ struct MvCommand
     char *        sGroup;      // the group name  
     Cmd_CommandFuncType        pFunc;       // the function to execute the command
     int           fChange;     // set to 1 to mark that the network is changed
+    int           nCalls;      // the number of command calls
+    double        TimeTotal;   // the total runtime of this command
+    double        TimeLast;    // the runtime of the last call
 };
 
 struct MvAlias
@@ -89,4 +92,3 @@ extern void       CmdPrintTable( st__table * tTable, int fAliases );
 ABC_NAMESPACE_HEADER_END
 
 #endif
-

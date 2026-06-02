@@ -37,6 +37,7 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 
 static int CmdCommandTime          ( Abc_Frame_t * pAbc, int argc, char ** argv );
+static int CmdCommandTimeStats     ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int CmdCommandSleep         ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int CmdCommandEcho          ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int CmdCommandQuit          ( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -93,6 +94,8 @@ void Cmd_Init( Abc_Frame_t * pAbc )
     Cmd_HistoryRead( pAbc );
 
     Cmd_CommandAdd( pAbc, "Basic", "time",          CmdCommandTime,            0 );
+    Cmd_CommandAdd( pAbc, "Basic", "time_stats",    CmdCommandTimeStats,       0 );
+    Cmd_CommandAdd( pAbc, "Basic", "timestats",     CmdCommandTimeStats,       0 );
     Cmd_CommandAdd( pAbc, "Basic", "sleep",         CmdCommandSleep,           0 );
     Cmd_CommandAdd( pAbc, "Basic", "echo",          CmdCommandEcho,            0 );
     Cmd_CommandAdd( pAbc, "Basic", "quit",          CmdCommandQuit,            0 );
@@ -231,6 +234,83 @@ int CmdCommandTime( Abc_Frame_t * pAbc, int argc, char **argv )
     fprintf( pAbc->Err, "usage: time [-ch]\n" );
     fprintf( pAbc->Err, "      \t\tprint the runtime since the last call\n" );
     fprintf( pAbc->Err, "   -c \t\tclears the elapsed time without printing it\n" );
+    fprintf( pAbc->Err, "   -h \t\tprint the command usage\n" );
+    return 1;
+}
+
+/**Function********************************************************************
+
+  Synopsis    [Prints per-command runtime and call-count statistics.]
+
+  SideEffects []
+
+  SeeAlso     []
+
+******************************************************************************/
+int CmdCommandTimeStats( Abc_Frame_t * pAbc, int argc, char **argv )
+{
+    st__generator * gen;
+    char * pKey, * pValue;
+    Abc_Command * pCommand;
+    int c, fClear = 0, fAll = 0;
+    int nCallsTotal = 0;
+    double TimeTotal = 0.0;
+
+    Extra_UtilGetoptReset();
+    while ( ( c = Extra_UtilGetopt( argc, argv, "ach" ) ) != EOF )
+    {
+        switch ( c )
+        {
+        case 'a':
+            fAll ^= 1;
+            break;
+        case 'c':
+            fClear ^= 1;
+            break;
+        case 'h':
+            goto usage;
+        default:
+            goto usage;
+        }
+    }
+
+    if ( argc != globalUtilOptind )
+        goto usage;
+
+    if ( fClear )
+    {
+        st__foreach_item( pAbc->tCommands, gen, (const char **)&pKey, (char **)&pValue )
+        {
+            pCommand = (Abc_Command *)pValue;
+            pCommand->nCalls = 0;
+            pCommand->TimeTotal = 0.0;
+            pCommand->TimeLast = 0.0;
+        }
+        fprintf( pAbc->Out, "cmdstat_clear ok\n" );
+        return 0;
+    }
+
+    st__foreach_item( pAbc->tCommands, gen, (const char **)&pKey, (char **)&pValue )
+    {
+        pCommand = (Abc_Command *)pValue;
+        if ( !fAll && pCommand->nCalls == 0 )
+            continue;
+        nCallsTotal += pCommand->nCalls;
+        TimeTotal += pCommand->TimeTotal;
+        fprintf( pAbc->Out, "cmdstat name=%s calls=%d total=%.6f last=%.6f avg=%.6f\n",
+            pCommand->sName,
+            pCommand->nCalls,
+            pCommand->TimeTotal,
+            pCommand->TimeLast,
+            pCommand->nCalls ? pCommand->TimeTotal / pCommand->nCalls : 0.0 );
+    }
+    fprintf( pAbc->Out, "cmdstat_total calls=%d total=%.6f\n", nCallsTotal, TimeTotal );
+    return 0;
+
+usage:
+    fprintf( pAbc->Err, "usage: time_stats [-ach]\n" );
+    fprintf( pAbc->Err, "   -a \t\tinclude commands with zero calls\n" );
+    fprintf( pAbc->Err, "   -c \t\tclear per-command runtime statistics\n" );
     fprintf( pAbc->Err, "   -h \t\tprint the command usage\n" );
     return 1;
 }

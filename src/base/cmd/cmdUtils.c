@@ -104,7 +104,7 @@ int CmdCommandDispatch( Abc_Frame_t * pAbc, int * pargc, char *** pargv )
     Abc_Command * pCommand;
     char * value;
     int fError;
-    double clk;
+    double clk, TimeDelta;
 
     if ( argc == 0 )
         return 0;
@@ -154,7 +154,11 @@ int CmdCommandDispatch( Abc_Frame_t * pAbc, int * pargc, char *** pargv )
     clk = Extra_CpuTimeDouble();
     pFunc = (int (*)(Abc_Frame_t *, int, char **))pCommand->pFunc;
     fError = (*pFunc)( pAbc, argc, argv );
-    pAbc->TimeCommand += Extra_CpuTimeDouble() - clk;
+    TimeDelta = Extra_CpuTimeDouble() - clk;
+    pAbc->TimeCommand += TimeDelta;
+    pCommand->nCalls++;
+    pCommand->TimeLast = TimeDelta;
+    pCommand->TimeTotal += TimeDelta;
 
     // automatic execution of arbitrary command after each command 
     // usually this is a passive command ... 

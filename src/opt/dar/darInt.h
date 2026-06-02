@@ -95,6 +95,8 @@ struct Dar_Man_t_
     int              nCutsBad;       // bad cuts due to absent fanin
     int              nCutsGood;      // good cuts
     int              nCutsSkipped;   // skipped bad cuts
+    int              nCutEnumCalls;  // calls to node-level cut enumeration
+    int              nCutEvalCalls;  // calls to candidate cut evaluation
     // timing statistics
     abctime          timeCuts;
     abctime          timeEval;
@@ -166,4 +168,3 @@ ABC_NAMESPACE_HEADER_END
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

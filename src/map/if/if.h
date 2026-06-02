@@ -268,6 +268,8 @@ struct If_Man_t_
     If_Set_t *         pFreeList;     // the list of free cutsets
     int                nSmallSupp;    // the small support
     int                nCutsTotal;
+    int                nCutEnumCalls;  // calls to node-level cut enumeration
+    int                nCutEvalCalls;  // calls to candidate cut evaluation
     int                nCutsUseless[32];
     int                nCutsCount[32];
     int                nCutsCountAll;

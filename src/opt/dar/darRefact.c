@@ -60,6 +60,8 @@ struct Ref_Man_t_
     int              nNodesExten;    // the number of nodes with extended cut
     int              nCutsUsed;      // the number of rewriting steps
     int              nCutsTried;     // the number of cuts tries
+    int              nCutEnumCalls;  // calls to node-level cut enumeration
+    int              nCutEvalCalls;  // calls to candidate cut evaluation
     // timing statistics
     abctime          timeCuts;
     abctime          timeEval;
@@ -146,6 +148,8 @@ void Dar_ManRefPrintStats( Ref_Man_t * p )
         p->nNodesInit, Aig_ManNodeNum(p->pAig), Gain, 100.0*Gain/p->nNodesInit );
     printf( "Tried = %6d. Below = %5d. Extended = %5d.  Used = %5d.  Levels = %4d.\n", 
         p->nNodesTried, p->nNodesBelow, p->nNodesExten, p->nCutsUsed, Aig_ManLevels(p->pAig) );
+    printf( "CutEnumCalls = %8d. CutEvalCalls = %8d. CutsTried = %8d.\n",
+        p->nCutEnumCalls, p->nCutEvalCalls, p->nCutsTried );
     ABC_PRT( "Cuts  ", p->timeCuts );
     ABC_PRT( "Eval  ", p->timeEval );
     ABC_PRT( "Other ", p->timeOther );
@@ -373,6 +377,7 @@ int Dar_ManRefactorTryCuts( Ref_Man_t * p, Aig_Obj_t * pObj, int nNodesSaved, in
 //            continue;
 
         p->nCutsTried++;
+        p->nCutEvalCalls++;
         // get the cut nodes
         Aig_ObjCollectCut( pObj, vCut, p->vCutNodes );
         // get the truth table
@@ -533,6 +538,7 @@ int Dar_ManRefactor( Aig_Man_t * pAig, Dar_RefPar_t * pPars )
 //printf( "\nConsidering node %d.\n", pObj->Id );
         // get the bounded MFFC size
 clk = Abc_Clock();
+        p->nCutEnumCalls++;
         nLevelMin = Abc_MaxInt( 0, Aig_ObjLevel(pObj) - 10 );
         nNodesSaved = Aig_NodeMffcSupp( pAig, pObj, nLevelMin, vCut );
         if ( nNodesSaved < p->pPars->nMffcMin ) // too small to consider
@@ -598,6 +604,9 @@ p->timeEval += Abc_Clock() - clk;
     }
 p->timeTotal = Abc_Clock() - clkStart;
 p->timeOther = p->timeTotal - p->timeCuts - p->timeEval;
+printf( "darstat op=drf cut_enum_calls=%d cut_eval_calls=%d cuts_tried=%d cuts_used=%d time_cuts=%.6f time_eval=%.6f\n",
+    p->nCutEnumCalls, p->nCutEvalCalls, p->nCutsTried, p->nCutsUsed,
+    1.0 * p->timeCuts / CLOCKS_PER_SEC, 1.0 * p->timeEval / CLOCKS_PER_SEC );
 
 //    Bar_ProgressStop( pProgress );
     // put the nodes into the DFS order and reassign their IDs
@@ -636,4 +645,3 @@ p->timeOther = p->timeTotal - p->timeCuts - p->timeEval;
 
 
 ABC_NAMESPACE_IMPL_END
-

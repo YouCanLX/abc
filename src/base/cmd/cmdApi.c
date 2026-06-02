@@ -81,6 +81,9 @@ void Cmd_CommandAdd( Abc_Frame_t * pAbc, const char * sGroup, const char * sName
     pCommand->sGroup  = Extra_UtilStrsav( sGroup );
     pCommand->pFunc   = pFunc;
     pCommand->fChange = fChanges;
+    pCommand->nCalls  = 0;
+    pCommand->TimeTotal = 0.0;
+    pCommand->TimeLast  = 0.0;
     fStatus = st__insert( pAbc->tCommands, pCommand->sName, (char *)pCommand );
     assert( !fStatus );  // the command should not be in the table
 }
@@ -220,4 +223,3 @@ int Cmd_CommandExecute( Abc_Frame_t * pAbc, const char * sCommand )
 
 
 ABC_NAMESPACE_IMPL_END
-
