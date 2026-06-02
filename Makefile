@@ -53,7 +53,15 @@ MODULES := \
 	src/aig/miniaig
 
 all: $(PROG)
+ifdef ABC_MAKE_CLEAN_ARTIFACTS
+	@echo "$(MSG_PREFIX)\`\` Cleaning build artifacts..."
+	$(VERBOSE)rm -f $(OBJ) $(DEP)
+endif
 default: $(PROG)
+ifdef ABC_MAKE_CLEAN_ARTIFACTS
+	@echo "$(MSG_PREFIX)\`\` Cleaning build artifacts..."
+	$(VERBOSE)rm -f $(OBJ) $(DEP)
+endif
 
 ARCHFLAGS_EXE ?= ./arch_flags
 
@@ -212,8 +220,10 @@ DEP := $(OBJ:.o=.d)
 	@echo "$(MSG_PREFIX)\`\` Generating dependency:" $(LOCAL_PATH)/$<
 	$(VERBOSE)$(ABCSRC)/depends.sh "$(CXX)" `dirname $*.cpp` $(OPTFLAGS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS) $< > $@
 
+ifeq ($(filter clean,$(MAKECMDGOALS)),)
 ifndef ABC_MAKE_NO_DEPS
 -include $(DEP)
+endif
 endif
 
 # Actual targets
